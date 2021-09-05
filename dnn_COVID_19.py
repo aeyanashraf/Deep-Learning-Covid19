@@ -1,6 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-#matplotlib inline
 import numpy as np
 import cv2, time
 import tensorflow as tf
@@ -58,13 +57,12 @@ for index, row in normal_df.iterrows():
     normal_images.append(image)
     normal_labels.append(label)
 
-# normalize to interval of [0,1]
 covid_images = np.array(covid_images) / 255
 
-# normalize to interval of [0,1]
+
 normal_images = np.array(normal_images) / 255
 
-# split into training and testing
+
 covid_x_train, covid_x_test, covid_y_train, covid_y_test = train_test_split(
     covid_images, covid_labels, test_size=0.2)
 
@@ -76,13 +74,12 @@ X_test = np.concatenate((normal_x_test, covid_x_test), axis=0)
 y_train = np.concatenate((normal_y_train, covid_y_train), axis=0)
 y_test = np.concatenate((normal_y_test, covid_y_test), axis=0)
 
-# make labels into categories - either 0 or 1
 y_train = LabelBinarizer().fit_transform(y_train)
 y_train = to_categorical(y_train)
 
 y_test = LabelBinarizer().fit_transform(y_test)
 y_test = to_categorical(y_test)
-#Defining the model
+
 vggModel = VGG19(weights="imagenet", include_top=False,
     input_tensor=Input(shape=(224, 224, 3)))
 
@@ -102,7 +99,6 @@ model.compile(
         metrics=['accuracy']
 )
 
-#Defining the augmentation of the training data
 train_aug = ImageDataGenerator(
     rotation_range=20,
     width_shift_range=0.2,
@@ -110,7 +106,6 @@ train_aug = ImageDataGenerator(
     horizontal_flip=True
 )
 
-#Fitting
 history = model.fit(train_aug.flow(X_train, y_train, batch_size=32),
                     steps_per_epoch=len(X_train) / 32,
                     epochs=50)
@@ -120,11 +115,10 @@ model.save("my_h5_model.h5")
 
 from sklearn.metrics import classification_report
 
-#predicting
+
 y_pred = model.predict(X_test, batch_size=32)
 print(classification_report(np.argmax(y_test, axis=1), np.argmax(y_pred, axis=1)))
 
-#scoring
 plt.figure(figsize=(10,10))
 plt.style.use('dark_background')
 
@@ -136,7 +130,5 @@ plt.ylabel('Value')
 plt.xlabel('Epoch')
 
 plt.legend(['Accuracy', 'Loss'])
-
-#plt.show()
 
 plt.savefig('plot.png', dpi=300, bbox_inches='tight')
